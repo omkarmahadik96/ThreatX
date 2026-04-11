@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CyberShield QR Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body{
+            margin:0;
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:linear-gradient(135deg,#0f172a,#020617);
+            font-family:sans-serif;
+            color:white;
+        }
+
+        .card{
+            width:90%;
+            max-width:350px;
+            padding:25px;
+            border-radius:15px;
+            background:rgba(255,255,255,0.05);
+            backdrop-filter:blur(15px);
+            box-shadow:0 0 25px rgba(0,255,255,0.2);
+            text-align:center;
+            animation:fadeIn 0.6s ease;
+        }
+
+        h2{
+            color:#00eaff;
+            margin-bottom:10px;
+        }
+
+        p{
+            color:#aaa;
+            font-size:14px;
+        }
+
+        .btn{
+            margin-top:20px;
+            width:100%;
+            padding:12px;
+            border:none;
+            border-radius:8px;
+            background:#00eaff;
+            color:black;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        .btn:hover{
+            box-shadow:0 0 10px #00eaff;
+        }
+
+        .status{
+            margin-top:15px;
+            font-size:13px;
+            color:#00eaff;
+        }
+
+        @keyframes fadeIn{
+            from{opacity:0; transform:translateY(20px);}
+            to{opacity:1; transform:translateY(0);}
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>🛡 CyberShield</h2>
+    <p>Confirm login on this device</p>
+
+    <button class="btn" onclick="confirmLogin()">Confirm Login</button>
+
+    <div id="status" class="status">Waiting...</div>
+</div>
+
+<script>
+const sessionId = "{{ session_id }}";
+
+async function confirmLogin(){
+
+    const status = document.getElementById("status");
+
+    status.innerText = "Processing...";
+
+    try{
+        const resp = await fetch("/qr-login-complete",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({session_id: sessionId})
+        });
+
+        const data = await resp.json();
+
+        if(data.success){
+            status.innerText = "Login approved ✅";
+
+            document.body.style.boxShadow = "0 0 50px #00ffcc inset";
+
+            setTimeout(()=>{
+                status.innerText = "You can close this tab";
+            },1500);
+        }
+        else{
+            status.innerText = "Failed ❌";
+        }
+
+    }catch(err){
+        console.error(err);
+        status.innerText = "Error ❌";
+    }
+}
+</script>
+
+</body>
+</html>

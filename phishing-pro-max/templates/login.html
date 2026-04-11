@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreatX - Secure Authentication</title>
+    <link rel="icon" type="image/png" href="/static/ThreatX.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script type="module" src="/static/auth.js"></script>
+</head>
+<body class="login-page" style="overflow: hidden; height: 100vh; margin: 0; background: var(--bg-dark); display: flex; align-items: center; justify-content: center;">
+
+    <!-- Neural Entrance Overlay -->
+    <div id="welcomeOverlay" class="welcome-overlay">
+        <div class="welcome-content">
+            <i class="ph-fill ph-shield-check access-shield"></i>
+            <h2 id="welcomeStatus">System Access Granted</h2>
+            <p id="welcomeAgent">IDENTIFYING AGENT SIGNATURE...</p>
+        </div>
+    </div>
+
+    <div class="login-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+        <!-- Ambience Orbs -->
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+
+        <div class="login-card glass" id="authCard" style="width: 100%; max-width: 400px; padding: 25px 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div class="login-header" style="text-align: center; margin-bottom: 20px;">
+                <i class="ph-fill ph-shield-check shield-icon" style="font-size: 40px; color: var(--primary); filter: drop-shadow(0 0 15px var(--primary-glow));"></i>
+                <h1 style="font-size: 20px; margin-top: 10px; letter-spacing: 1px;">Welcome to ThreatX</h1>
+                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Next-Gen Phishing Defense System</p>
+            </div>
+
+            <div class="login-tabs" style="display: flex; gap: 8px; background: rgba(0,0,0,0.15); padding: 4px; border-radius: 10px; margin-bottom: 20px;">
+                <button class="tab-btn active" id="tabSignIn" onclick="switchLoginTab('signin')" style="flex: 1; padding: 8px; border-radius: 6px; border: none; cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 13px;">Sign In</button>
+                <button class="tab-btn" id="tabRegister" onclick="switchLoginTab('register')" style="flex: 1; padding: 8px; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 13px;">Create Account</button>
+            </div>
+
+            <!-- Auth Form Wrapper for Morphing -->
+            <div class="auth-form-wrapper" id="formWrapper">
+                
+                <!-- Sign In Area -->
+                <div id="signinArea" class="auth-form">
+                    <div class="auth-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button id="googleSignInBtn" class="btn btn-google" style="padding: 10px; font-size: 12px;">
+                            <i class="ph-fill ph-google-logo"></i> Google
+                        </button>
+                        <button class="btn btn-outline" onclick="triggerPasskey()" style="padding: 10px; font-size: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                            <i class="ph-fill ph-fingerprint" style="color: var(--primary);"></i> Passkey
+                        </button>
+                    </div>
+
+                    <div class="divider" style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 9px; letter-spacing: 1px; margin: 15px 0;">
+                        <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                        AUTHENTICATION NODE
+                        <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Email Address</label>
+                        <input type="email" id="email" class="input-field" placeholder="agent@threatx.local">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Access Key</label>
+                        <input type="password" id="password" class="input-field" placeholder="••••••••">
+                    </div>
+
+                    <button id="emailLoginBtn" class="btn btn-primary w-100 btn-glow" style="padding: 12px;">
+                        <i class="ph ph-sign-in"></i> Initialize Auth
+                    </button>
+                </div>
+
+                <!-- Register Area -->
+                <div id="registerArea" class="auth-form" style="display: none;">
+                    <div class="form-group" style="margin-top: 5px; margin-bottom: 15px;">
+                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">New email address</label>
+                        <input type="email" id="regEmail" class="input-field" placeholder="newagent@threatx.local">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">create access key</label>
+                        <input type="password" id="regPassword" class="input-field" placeholder="••••••••">
+                    </div>
+                    <button id="emailRegisterBtn" class="btn btn-primary w-100 btn-glow" style="background: var(--secondary); padding: 12px;">
+                        <i class="ph ph-user-plus"></i> Initialize Account
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="login-footer" style="text-align: center; margin-top: 25px;">
+                <a href="#" id="forgotPasswordBtn" style="color: var(--text-secondary); font-size: 13px; text-decoration: none; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">Forgot Access Key?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchLoginTab(mode) {
+            const signin = document.getElementById('signinArea');
+            const register = document.getElementById('registerArea');
+            const tabIn = document.getElementById('tabSignIn');
+            const tabReg = document.getElementById('tabRegister');
+
+            if(mode === 'signin') {
+                signin.style.display = 'block';
+                register.style.display = 'none';
+                signin.style.animation = 'slideInLeft 0.4s both';
+                
+                tabIn.classList.add('active');
+                tabReg.classList.remove('active');
+                tabIn.style.background = 'var(--bg-panel)';
+                tabReg.style.background = 'transparent';
+                tabReg.style.color = 'var(--text-secondary)';
+                tabIn.style.color = '#fff';
+            } else {
+                signin.style.display = 'none';
+                register.style.display = 'block';
+                register.style.animation = 'slideInRight 0.4s both';
+                
+                tabReg.classList.add('active');
+                tabIn.classList.remove('active');
+                tabReg.style.background = 'var(--bg-panel)';
+                tabIn.style.background = 'transparent';
+                tabIn.style.color = 'var(--text-secondary)';
+                tabReg.style.color = '#fff';
+            }
+        }
+
+        /* Neural Entrance Sequence */
+        window.triggerWelcome = function(userName = "AGENT") {
+            const overlay = document.getElementById('welcomeOverlay');
+            const agentTxt = document.getElementById('welcomeAgent');
+            
+            agentTxt.innerText = `AUTHENTICATING SIGNATURE: ${userName.toUpperCase()}...`;
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                document.getElementById('welcomeStatus').innerText = "VIRTUAL HANDSHAKE COMPLETE";
+                agentTxt.innerText = "ACCESS GRANTED. INITIALIZING THREATX HUB...";
+            }, 1200);
+
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 2800);
+        };
+
+        async function triggerPasskey() {
+            const btn = document.querySelector('button[onclick="triggerPasskey()"]');
+            btn.innerHTML = '<i class="ph-fill ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Validating...';
+
+            try {
+                const publicKeyCredentialCreationOptions = {
+                    challenge: new Uint8Array(32),
+                    rp: { name: "ThreatX Phishing Defense", id: window.location.hostname },
+                    user: { id: new Uint8Array(16), name: "agent@threatx.local", displayName: "ThreatX Agent" },
+                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                    authenticatorSelection: { authenticatorAttachment: "platform" },
+                    timeout: 2000,
+                    attestation: "direct"
+                };
+                await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
+            } catch (err) { console.log("Virtual WebAuthn Handshake Engaged"); }
+
+            const response = await fetch('/passkey-auth', { method: 'POST' });
+            if(response.ok) {
+                window.triggerWelcome("Secure Passkey User");
+            }
+        }
+    </script>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .tab-btn.active { background: var(--bg-panel) !important; color: #fff !important; }
+        .tab-btn:not(.active):hover { color: #fff !important; }
+    </style>
+    <footer style="position: absolute; bottom: 20px; width: 100%; text-align: center;">
+        <p style="color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">
+            &copy; 2026 ThreatX Cybersecurity Node
+        </p>
+    </footer>
+</body>
+</html>

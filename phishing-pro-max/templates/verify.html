@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Email</title>
+    <style>
+        body{
+            background:#020617;
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            font-family:sans-serif;
+            text-align:center;
+        }
+        .card{
+            background:rgba(255,255,255,0.05);
+            padding:30px;
+            border-radius:15px;
+            box-shadow:0 0 25px rgba(0,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📩 Check your Email</h2>
+    <p>We sent a verification link.</p>
+    <p>Please verify your email to continue.</p>
+</div>
+
+<script type="module">
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const auth = getAuth();
+
+// 🔥 CHECK EVERY 3 SEC
+setInterval(()=>{
+    const user = auth.currentUser;
+
+    if(user){
+        user.reload().then(()=>{
+            if(user.emailVerified){
+                window.location.href="/login";
+            }
+        });
+    }
+},3000);
+</script>
+
+</body>
+</html>

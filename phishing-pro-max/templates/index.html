@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreatX - Advanced Phishing Detection</title>
+    <link rel="icon" type="image/png" href="/static/ThreatX.png">
+
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="brand">
+                <i class="ph-fill ph-shield-check"></i>
+                <span>ThreatX</span>
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="#" class="active" onclick="openPage(event, 'dashboard')"><i class="ph ph-squares-four"></i>
+                        Dashboard</a></li>
+                <li><a href="#" onclick="openPage(event, 'gmail-scanner')"><i class="ph ph-envelope-simple"></i> Gmail
+                        Scan</a></li>
+                <li><a href="#" onclick="openPage(event, 'history')"><i class="ph ph-clock-counter-clockwise"></i>
+                        History</a></li>
+                <li><a href="#" onclick="openPage(event, 'settings')"><i class="ph ph-gear"></i> Settings</a></li>
+                <li><a href="#" onclick="openPage(event, 'about')"><i class="ph ph-info"></i> About</a></li>
+            </ul>
+
+            <div class="sidebar-bottom">
+                <div class="user-profile" onclick="openProfileModal()"
+                    style="cursor: pointer; transition: 0.3s; padding: 5px; border-radius: 8px;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.05)'"
+                    onmouseout="this.style.background='transparent'" title="Edit Profile">
+                    <img id="sidebarProfileImg"
+                        src="https://ui-avatars.com/api/?name=User&background=121218&color=5e6ad2" alt="User">
+                    <div class="user-info">
+                        <strong id="sidebarProfileName">Security Admin</strong>
+                        <span>Active Session <i class="ph ph-pencil-simple"
+                                style="margin-left:5px; font-size:10px;"></i></span>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout(event)"><i class="ph ph-sign-out"></i> Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div>
+                    <h1 id="page-title">Threat Intelligence Dashboard</h1>
+                    <p class="subtitle">Real-time heuristic & ML-based phishing analysis</p>
+                </div>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
+                    <span id="themeLabel"
+                        style="font-size: 14px; color: var(--text-secondary); font-weight: bold; letter-spacing: 0.5px;">Dark
+                        Mode</span>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="themeSwitch" onchange="toggleTheme()">
+                        <span class="ios-slider"></span>
+                    </label>
+                </div>
+            </header>
+
+            <div class="pages-wrapper">
+
+                <!-- DASHBOARD PAGE -->
+                <div id="dashboard" class="page active">
+                    <div class="grid-2-col">
+
+                        <!-- Left Col: Input -->
+                        <div class="panel glass">
+                            <div class="panel-header">
+                                <h2><i class="ph ph-crosshair"></i> Manual Threat Scan</h2>
+                            </div>
+                            <div class="panel-body">
+                                <form id="scanForm" onsubmit="event.preventDefault(); scan();">
+                                    <div class="form-group">
+                                        <label>Target URL</label>
+                                        <input type="text" id="urlInput"
+                                            placeholder="e.g. https://suspicious-link.com/login" class="input-field"
+                                            autocomplete="off">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Suspicious Email Content / Context</label>
+                                        <textarea id="textInput"
+                                            placeholder="Paste the email content or suspicious message here..."
+                                            class="input-field textarea" rows="5"></textarea>
+                                    </div>
+                                    <button type="submit" id="scanBtn" class="btn btn-primary w-100 btn-glow">
+                                        <i class="ph ph-scan"></i> Analyze Threat
+                                        <div class="loader-spinner" style="display: none;"></div>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right Col: Results -->
+                        <div class="panel glass results-panel" id="resultsPanel">
+                            <div class="panel-header">
+                                <h2><i class="ph ph-radar"></i> Analysis Results</h2>
+                                <span class="badge badge-default" id="statusBadge">Awaiting Input</span>
+                            </div>
+
+                            <div class="meter-section">
+                                <div class="gauge-container">
+                                    <svg viewBox="0 0 100 50" class="gauge">
+                                        <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50"></path>
+                                        <path class="gauge-value" id="gaugeProgress" d="M 10 50 A 40 40 0 0 1 90 50">
+                                        </path>
+                                    </svg>
+                                    <div class="gauge-content">
+                                        <span id="riskScore">0</span><span class="pct">%</span>
+                                    </div>
+                                </div>
+                                <div class="gauge-label">THREAT RISK SCORE</div>
+                            </div>
+
+                            <div class="details-grid">
+                                <div class="detail-box">
+                                    <span class="lbl">Protocol</span>
+                                    <div class="val" id="resHttps">-</div>
+                                </div>
+                                <div class="detail-box">
+                                    <span class="lbl">IP Resolution</span>
+                                    <div class="val" id="resIp">-</div>
+                                </div>
+                            </div>
+
+                            <div class="reasons-box" id="reasonsBox" style="display: none;">
+                                <div class="lbl">DETECTION TRIGGERS</div>
+                                <ul class="reasons-list" id="reasonsList"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Section -->
+                    <div class="panel glass mt-4">
+                        <div class="panel-header">
+                            <h2><i class="ph ph-trend-up"></i> Threat Analytics Trend</h2>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="riskChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GMAIL SCANNER PAGE -->
+                <div id="gmail-scanner" class="page">
+                    <div class="panel glass">
+                        <div class="panel-header text-center">
+                            <i class="ph-fill ph-envelope-open"
+                                style="font-size: 48px; color: var(--secondary); margin-bottom: 10px;"></i>
+                            <h2>Integrated Inbox Scanning</h2>
+                            <p class="subtitle">Quickly scan your latest emails for phishing attempts</p>
+                        </div>
+
+                        <div class="text-center" style="padding: 40px 0;">
+                            <button id="gmailScanBtn" class="btn btn-primary btn-glow btn-lg" onclick="scanGmail()">
+                                <i class="ph ph-google-logo"></i> Scan Inbox Now
+                            </button>
+                            <button id="gmailChangeBtn" class="btn btn-outline btn-lg" style="margin-left: 10px;"
+                                onclick="changeGmail()">
+                                <i class="ph ph-swap"></i> Check Another Gmail
+                            </button>
+                            <p id="gmailScanStatus" style="margin-top: 15px; color: var(--text-secondary);"></p>
+                        </div>
+
+                        <div id="gmailResults" class="gmail-results" style="display: none;">
+                            <div class="grid-2-col">
+                                <div class="panel glass-sub">
+                                    <h3>Inbox Risk Score</h3>
+                                    <div class="gmail-score" id="gmailRiskScore">0</div>
+                                    <div class="badge" id="gmailStatusBadge">Status</div>
+                                </div>
+                                <div class="panel glass-sub">
+                                    <h3>Top Threats Detected</h3>
+                                    <ul class="reasons-list" id="gmailReasonsList"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORY PAGE -->
+                <div id="history" class="page">
+                    <div class="panel glass">
+                        <div class="panel-header">
+                            <h2><i class="ph ph-clock-counter-clockwise"></i> Scan History</h2>
+                            <button class="btn-clear" onclick="clearHistory()" title="Delete All History" style="font-size: 18px;">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                        <div id="historyEmpty" class="empty-state">
+                            <i class="ph ph-folder-open"></i>
+                            <p>No scans recorded yet.</p>
+                        </div>
+                        <div class="history-list" id="historyList"></div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS PAGE -->
+                <div id="settings" class="page">
+                    <div class="panel glass">
+                        <div class="panel-header">
+                            <h2><i class="ph ph-gear-six"></i> System Settings</h2>
+                        </div>
+                        <p class="subtitle">Customize your ThreatX detection engine.</p>
+
+                        <div class="glass-sub mt-4" style="padding: 15px; border-radius: 8px;">
+                            <h3 style="font-size:16px; margin-bottom: 5px; color: var(--text-primary);"><i
+                                    class="ph ph-user-circle"></i> Authenticated Agent Profile</h3>
+                            <p style="color:var(--text-secondary); font-size:14px; margin-bottom: 0;">Site Authorization
+                                Node: <span id="site-login-email"
+                                    style="color:var(--primary); font-family: monospace; font-weight: bold;">Loading...</span>
+                            </p>
+                        </div>
+
+                        <div class="settings-group mt-4">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                                <span class="toggle-label">URL Heuristic Scanning</span>
+                            </label>
+                            <label class="toggle-switch mt-3">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                                <span class="toggle-label">ML-Based Content Analysis</span>
+                            </label>
+                            <label class="toggle-switch mt-3">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                                <span class="toggle-label">Real-time Push Notifications</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABOUT PAGE -->
+                <div id="about" class="page">
+                    <div class="panel glass">
+                        <div class="panel-header">
+                            <h2><i class="ph ph-info"></i> ThreatX Intelligence Briefing</h2>
+                            <span style="font-size: 10px; font-weight: bold; background: var(--border-light); padding: 4px 8px; border-radius: 4px; letter-spacing: 1px;">VERSION 1.0.0 PRO</span>
+                        </div>
+                        <div class="panel-body" style="color: var(--text-secondary); line-height: 1.8;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 10px;">The Next-Gen Phishing Defense</h3>
+                            <p>ThreatX is a precision-engineered cybersecurity platform built to neutralize sophisticated phishing attacks in real-time. By combining human-logic Heuristics with a deep Machine Learning neural core, we ensure zero-day threats are identified before they compromise your data.</p>
+                            
+                            <div class="grid-2-col mt-4" style="gap: 15px;">
+                                <div class="glass-sub" style="padding: 20px;">
+                                    <h4 style="color: var(--primary); margin-bottom: 5px;"><i class="ph-fill ph-brain"></i> AI Brain</h4>
+                                    <p style="font-size: 13px;">Trained on over 50,000 unique phishing samples with an 87.5% detection accuracy using Scikit-Learn vectorization.</p>
+                                </div>
+                                <div class="glass-sub" style="padding: 20px;">
+                                    <h4 style="color: var(--secondary); margin-bottom: 5px;"><i class="ph-fill ph-cloud"></i> Cloud Native</h4>
+                                    <p style="font-size: 13px;">Built for the serverless era with Google Firestore persistence, ensuring your threat history is synced across all authorization nodes.</p>
+                                </div>
+                            </div>
+
+                            <div class="glass-sub mt-4" style="padding: 20px; text-align: center; border: 1px dashed var(--primary-glow);">
+                                <strong style="color: var(--primary); font-size: 18px; letter-spacing: 1px;">The Ultimate Shield for Your Digital Identity</strong><br>
+                                <span style="font-size: 12px; opacity: 0.9; color: var(--success); font-weight: bold; letter-spacing: 2px;">INTELLIGENCE STATUS: MISSION READY</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer style="margin-top: 40px; padding: 20px 0; border-top: 1px solid var(--border-light); text-align: center;">
+                <p style="color: var(--text-secondary); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 500;">
+                    &copy; 2026 ThreatX Phishing Defense System. All rights reserved.
+                </p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Agent Profile Modification Modal -->
+    <div id="profileModal" class="modal-overlay" style="display: none;">
+        <div class="panel glass modal-content" style="max-width: 450px; margin: auto;">
+            <div class="panel-header">
+                <h2><i class="ph-fill ph-user-circle-gear"></i> Agent Identity Config</h2>
+                <button class="btn-clear" onclick="closeProfileModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="form-group text-center">
+                <div class="profile-preview-wrapper"
+                    style="width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin: 0 auto 15px; border: 2px solid var(--primary);">
+                    <img id="profilePreview" src="https://ui-avatars.com/api/?name=User&background=121218&color=5e6ad2"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <label class="btn btn-outline" style="cursor: pointer; font-size: 13px; padding: 8px 16px;">
+                    <i class="ph ph-upload-simple"></i> Select Display Picture
+                    <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                </label>
+            </div>
+            <div class="form-group" id="cropContainer"
+                style="display: none; height: 250px; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+                <img id="imageToCrop" src="" style="max-width: 100%;">
+                <button class="btn btn-primary mt-2 w-100" onclick="applyCrop()"
+                    style="position: absolute; bottom: 85px; z-index: 100; left: 50%; transform: translateX(-50%); width: 90%;">Confirm
+                    Final Composition</button>
+            </div>
+            <div class="form-group" style="margin-top: 25px;">
+                <label>Assigned Authorization Title</label>
+                <input type="text" id="profileNameInput" class="input-field" value="Security Admin">
+            </div>
+            <button class="btn btn-primary w-100 btn-glow" onclick="saveProfile()" style="margin-top: 15px;"><i
+                    class="ph ph-floppy-disk"></i> Enforce Profile Overlay</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay" style="display: none;">
+        <div class="panel glass modal-content" style="max-width: 400px; text-align: center;">
+            <div class="panel-header" style="justify-content: center; border: none; padding-bottom: 5px;">
+                <i class="ph-fill ph-warning-octagon" style="font-size: 50px; color: var(--danger); margin-bottom: 10px;"></i>
+            </div>
+            <h2 style="margin-bottom: 10px;">Security Protocol</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 25px; font-size: 14px; line-height: 1.5;">Are you sure you want to initialize a **Total System Wipe** of your scan history? This action is irreversible.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmClearHistory()" style="background: var(--danger); border-color: var(--danger); box-shadow: 0 0 15px rgba(255, 75, 75, 0.3);">Wipe History</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

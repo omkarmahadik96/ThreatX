@@ -16,7 +16,11 @@ import firebase_admin
 from firebase_admin import credentials, auth, firestore, storage
 import uuid
 from utils import detect, email_scan_engine
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'openid'
+]
 
 def get_redirect_uri():
     # Automatically switch between localhost and production
@@ -429,8 +433,11 @@ def email_scan():
     try:
         profile = service.users().getProfile(userId='me').execute()
         scanned_email = profile.get("emailAddress", "Unknown")
-    except Exception:
-        pass
+        print(f"📧 [THREATX-GMAIL] Scanning Inbox: {scanned_email}")
+    except Exception as e:
+        print(f"❌ [THREATX-GMAIL] Profile Fetch Failed: {str(e)}")
+        # Fallback: check if we have it in session from a previous login
+        scanned_email = session.get("user_email", "Unknown")
 
     results = service.users().messages().list(userId='me', maxResults=10).execute()
     messages = results.get('messages', [])

@@ -16,7 +16,7 @@ from firebase_admin import credentials, auth, firestore, storage
 import uuid
 from utils import detect, email_scan_engine
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-REDIRECT_URI = "http://localhost:5000/oauth2callback"
+REDIRECT_URI = "https://threat-x-git-main-cybershild.vercel.app/oauth2callback"
 
 # 🔥 IMPORT NEW ENGINE
 from utils import detect

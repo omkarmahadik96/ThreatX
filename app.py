@@ -4,6 +4,7 @@ from google.oauth2.credentials import Credentials
 from urllib.parse import urlparse
 import requests
 import tldextract
+import socket
 import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 import hashlib
@@ -605,10 +606,15 @@ def predict():
             "reasons": list(set(reasons))
         })
 
+    # Get domain info for UI
+    domain_info = get_domain_info(url) if url else {"ip": "N/A", "https": False}
+
     return jsonify({
         "score": risk,
         "status": status,
-        "reasons": list(set(reasons))
+        "reasons": list(set(reasons)),
+        "ip": domain_info["ip"],
+        "https": domain_info["https"]
     })
 
 # -----------------------------

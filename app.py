@@ -17,7 +17,12 @@ from firebase_admin import credentials, auth, firestore, storage
 import uuid
 from utils import detect, email_scan_engine
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-REDIRECT_URI = "https://threat-x-git-main-cybershild.vercel.app/oauth2callback"
+
+def get_redirect_uri():
+    # Automatically switch between localhost and production
+    if request.host.startswith('localhost'):
+        return "http://localhost:5000/oauth2callback"
+    return f"https://{request.host}/oauth2callback"
 
 # 🔥 IMPORT NEW ENGINE
 from utils import detect
@@ -324,7 +329,7 @@ def gmail_login():
     flow = Flow.from_client_secrets_file(
         os.path.join(BASE_DIR, "credentials.json"),
         scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
+        redirect_uri=get_redirect_uri()
     )
 
     auth_url, state = flow.authorization_url(
@@ -362,7 +367,7 @@ def callback():
         os.path.join(BASE_DIR, "credentials.json"),
         scopes=SCOPES,
         state=state,
-        redirect_uri=REDIRECT_URI
+        redirect_uri=get_redirect_uri()
     )
 
     # PATHWAY 1: Try Local Session (Fastest)

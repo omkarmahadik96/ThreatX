@@ -178,9 +178,15 @@ try:
     if cred:
         # Extract project ID automatically from service account
         target_project_id = cred.project_id
-        firebase_admin.initialize_app(cred, {
-            'storageBucket': f'{target_project_id}.appspot.com'
-        })
+        
+        # Check if already initialized to prevent 'app already exists' errors
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred, {
+                'storageBucket': f'{target_project_id}.appspot.com'
+            })
+            print(f"🛡️ [THREATX-CLOUD] Firebase Initialized for project: {target_project_id}")
+        else:
+            print("🛡️ [THREATX-CLOUD] Firebase already initialized, skipping...")
         
         # Explicitly target your custom database 'cybershield'
         try:
@@ -329,6 +335,9 @@ def scan_emails():
 # -----------------------------
 @app.route("/verify-google", methods=["POST"])
 def verify_google():
+    if not db or not firebase_admin._apps:
+        return jsonify({"success": False, "error": "Firebase SDK not initialized. Check your SERVICE_ACCOUNT_JSON environment variable."})
+
     id_token = request.json.get("idToken")
     try:
         decoded = auth.verify_id_token(id_token)
@@ -343,6 +352,9 @@ def verify_google():
 
 @app.route("/verify-email", methods=["POST"])
 def verify_email():
+    if not db or not firebase_admin._apps:
+        return jsonify({"success": False, "error": "Firebase SDK not initialized. Check your SERVICE_ACCOUNT_JSON environment variable."})
+
     id_token = request.json.get("idToken")
     try:
         decoded = auth.verify_id_token(id_token)

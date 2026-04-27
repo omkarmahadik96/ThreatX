@@ -159,31 +159,47 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # -----------------------------
 # FIREBASE ADMIN SETUP
 # -----------------------------
-firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
-if firebase_json:
-    import json
-    service_account_info = json.loads(firebase_json)
-    cred = fb_creds.Certificate(service_account_info)
-else:
-    cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
-    cred = fb_creds.Certificate(cred_path)
-
-# Extract project ID automatically from service account
-target_project_id = cred.project_id
-
-firebase_admin.initialize_app(cred, {
-    'storageBucket': f'{target_project_id}.appspot.com'
-})
-
-# Explicitly target your custom database 'cybershield'
 try:
-    db = firestore.client(database_id="cybershield")
-    print("💎 [THREATX-CLOUD] Connected to database: 'cybershield'")
-except:
-    # Fallback to default if there is a version mismatch in firebase-admin
-    db = firestore.client()
+    firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    if firebase_json:
+        print("🛡️ [THREATX-CLOUD] Loading Firebase credentials from Environment Variable")
+        import json
+        service_account_info = json.loads(firebase_json)
+        cred = fb_creds.Certificate(service_account_info)
+    else:
+        cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
+        if os.path.exists(cred_path):
+            print(f"🛡️ [THREATX-CLOUD] Loading Firebase credentials from local file: {cred_path}")
+            cred = fb_creds.Certificate(cred_path)
+        else:
+            print("❌ [THREATX-CLOUD] CRITICAL: No Firebase credentials found (ENV or FILE)")
+            cred = None
 
-bucket = storage.bucket()
+    if cred:
+        # Extract project ID automatically from service account
+        target_project_id = cred.project_id
+        firebase_admin.initialize_app(cred, {
+            'storageBucket': f'{target_project_id}.appspot.com'
+        })
+        
+        # Explicitly target your custom database 'cybershield'
+        try:
+            db = firestore.client(database_id="cybershield")
+            print("💎 [THREATX-CLOUD] Connected to database: 'cybershield'")
+        except Exception as db_err:
+            print(f"⚠️ [THREATX-CLOUD] Custom DB 'cybershield' failed, trying default: {db_err}")
+            db = firestore.client()
+        
+        bucket = storage.bucket()
+    else:
+        db = None
+        bucket = None
+        print("⚠️ [THREATX-CLOUD] Firebase initialization skipped - DB features will be disabled")
+
+except Exception as e:
+    print(f"🔥 [THREATX-CLOUD] FATAL FIREBASE ERROR: {str(e)}")
+    db = None
+    bucket = None
 
 # -----------------------------
 # FLASK APP

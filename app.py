@@ -168,11 +168,17 @@ try:
         try:
             import json
             service_account_info = json.loads(firebase_json)
+            
+            # 🔥 CRITICAL FIX: Handle escaped newlines in the private key string
+            # This solves the "Unable to load PEM file" error on Vercel/Windows
+            if "private_key" in service_account_info:
+                service_account_info["private_key"] = service_account_info["private_key"].replace("\\n", "\n")
+            
             cred = fb_creds.Certificate(service_account_info)
             print("🛡️ [THREATX-CLOUD] Successfully parsed Service Account JSON from Environment.")
         except Exception as json_err:
-            print(f"❌ [THREATX-CLOUD] JSON Parse Error: {str(json_err)}")
-            print(f"DEBUG: First 20 chars of variable: {firebase_json[:20]}...")
+            print(f"❌ [THREATX-CLOUD] Firebase Init Error: {str(json_err)}")
+            print(f"DEBUG: Ensure your private_key in the JSON starts with '-----BEGIN PRIVATE KEY-----'")
     else:
         cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
         if os.path.exists(cred_path):

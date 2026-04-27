@@ -14,7 +14,7 @@ import json
 import uuid
 from flask import Flask, render_template, request, jsonify, session, redirect
 import firebase_admin
-from firebase_admin import credentials, auth, firestore, storage
+from firebase_admin import credentials as fb_creds, auth, firestore, storage
 from utils import detect, email_scan_engine
 from dotenv import load_dotenv
 
@@ -163,10 +163,10 @@ firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
 if firebase_json:
     import json
     service_account_info = json.loads(firebase_json)
-    cred = credentials.Certificate(service_account_info)
+    cred = fb_creds.Certificate(service_account_info)
 else:
     cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
-    cred = credentials.Certificate(cred_path)
+    cred = fb_creds.Certificate(cred_path)
 
 # Extract project ID automatically from service account
 target_project_id = cred.project_id

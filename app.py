@@ -500,20 +500,27 @@ def email_scan():
         })
 
     creds = Credentials(**session['gmail_creds'])
-    service = build('gmail', 'v1', credentials=creds)
-
-    scanned_email = "Unknown"
     try:
+        service = build('gmail', 'v1', credentials=creds)
         profile = service.users().getProfile(userId='me').execute()
         scanned_email = profile.get("emailAddress", "Unknown")
         print(f"📧 [THREATX-GMAIL] Scanning Inbox: {scanned_email}")
     except Exception as e:
-        print(f"❌ [THREATX-GMAIL] Profile Fetch Failed: {str(e)}")
-        # Fallback: check if we have it in session from a previous login
+        print(f"❌ [THREATX-GMAIL] API Initialization Failed: {str(e)}")
+        if "has not been used in project" in str(e) or "disabled" in str(e).lower():
+            return jsonify({
+                "risk": 0,
+                "status": "API Disabled",
+                "reasons": ["Gmail API must be enabled in Google Cloud Console"]
+            }), 403
         scanned_email = session.get("user_email", "Unknown")
 
-    results = service.users().messages().list(userId='me', maxResults=10).execute()
-    messages = results.get('messages', [])
+    try:
+        results = service.users().messages().list(userId='me', maxResults=10).execute()
+        messages = results.get('messages', [])
+    except Exception as e:
+        print(f"❌ [THREATX-GMAIL] Message Fetch Failed: {str(e)}")
+        return jsonify({"risk":0, "status":"Scan Failed", "reasons":[str(e)]}), 500
 
     highest_score = 0
     all_reasons = []

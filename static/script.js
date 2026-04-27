@@ -291,14 +291,25 @@ function scanGmail() {
     statTxt.innerHTML = "Authenticating & downloading latest emails...";
     resDiv.style.display = 'none';
 
-    fetch('/email-scan', { method: 'POST' })
-    .then(res => res.json())
+    .then(async res => {
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.status || "Scanning failed");
+        }
+        return res.json();
+    })
     .then(data => {
         btn.disabled = false;
         
         if (data.status === "Login required") {
             statTxt.innerHTML = "Requires Google Workspace Authentication. Redirecting...";
             setTimeout(() => window.location.href = '/gmail-login', 1500);
+            return;
+        }
+
+        if (data.status === "API Disabled") {
+            statTxt.innerHTML = `<b style="color:var(--danger);">Gmail API Disabled.</b><br>Please enable the "Gmail API" in your Google Cloud Console for the project: <span style="color:var(--primary);">cybershild-ai</span>`;
+            showToast("Gmail API not enabled in Cloud Console", "error");
             return;
         }
 
@@ -345,7 +356,7 @@ function scanGmail() {
     })
     .catch(err => {
         btn.disabled = false;
-        statTxt.innerHTML = "Scanning failed. Check network or server logs.";
+        statTxt.innerHTML = `Scanning failed: ${err.message}. Check your Vercel logs for more details.`;
         showToast("Error processing Gmail API trace.", "error");
     });
 }

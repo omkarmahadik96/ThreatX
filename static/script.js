@@ -284,13 +284,14 @@ function updateChart(risk) {
 /* Gmail Scan Integration */
 function scanGmail() {
     const btn = document.getElementById('gmailScanBtn');
-    const statTxt = document.getElementById('gmailScanStatus');
+    const statTxt = document.getElementById('gmailStatusText');
     const resDiv = document.getElementById('gmailResults');
 
     btn.disabled = true;
     statTxt.innerHTML = "Authenticating & downloading latest emails...";
     resDiv.style.display = 'none';
 
+    fetch('/email-scan', { method: 'POST' })
     .then(async res => {
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));

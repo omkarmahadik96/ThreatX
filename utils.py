@@ -4,6 +4,10 @@ import ssl
 import socket
 import re
 import base64
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # -----------------------------
 # 🔥 DOMAIN ANALYSIS (RISK SCORING)
@@ -138,7 +142,9 @@ def analyze_msg(msg):
 # -----------------------------
 def check_virustotal(url):
     try:
-        API_KEY = "98dcc4ea40e32eee7099774f27cd5e7d013dcb196e31850cf5a53ae96324ed4a"
+        API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
+        if not API_KEY:
+            return 0, ["VirusTotal scan skipped (API Key missing)"]
         headers = {"x-apikey": API_KEY}
         url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
 

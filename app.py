@@ -7,15 +7,12 @@ import tldextract
 import socket
 import os
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-import hashlib
-import pickle
-import re
-import json
-from flask import Flask, render_template, request, jsonify, session, redirect
-import firebase_admin
-from firebase_admin import credentials, auth, firestore, storage
-import uuid
 from utils import detect, email_scan_engine
+import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -155,8 +152,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # -----------------------------
 # FIREBASE ADMIN SETUP
 # -----------------------------
-cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
-cred = credentials.Certificate(cred_path)
+firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+if firebase_json:
+    import json
+    service_account_info = json.loads(firebase_json)
+    cred = credentials.Certificate(service_account_info)
+else:
+    cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
+    cred = credentials.Certificate(cred_path)
 
 # Extract project ID automatically from service account
 target_project_id = cred.project_id
@@ -184,10 +187,10 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, "static")
 )
 
-app.secret_key = "supersecretkey123"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback-secret-key-123")
 
 app.config.update(
-    SECRET_KEY="supersecretkey123",
+    SECRET_KEY=os.getenv("FLASK_SECRET_KEY", "fallback-secret-key-123"),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SECURE=False,
     SESSION_COOKIE_SAMESITE="Lax",   # 🔥 IMPORTANT
@@ -330,11 +333,21 @@ def verify_email():
     
 @app.route("/gmail-login")
 def gmail_login():
-    flow = Flow.from_client_secrets_file(
-        os.path.join(BASE_DIR, "credentials.json"),
-        scopes=SCOPES,
-        redirect_uri=get_redirect_uri()
-    )
+    google_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if google_json:
+        import json
+        client_config = json.loads(google_json)
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=SCOPES,
+            redirect_uri=get_redirect_uri()
+        )
+    else:
+        flow = Flow.from_client_secrets_file(
+            os.path.join(BASE_DIR, "credentials.json"),
+            scopes=SCOPES,
+            redirect_uri=get_redirect_uri()
+        )
 
     auth_url, state = flow.authorization_url(
         access_type='offline',
@@ -367,12 +380,23 @@ def callback():
 
     print(f"✅ Callback received for state: {state[:8]}...")
 
-    flow = Flow.from_client_secrets_file(
-        os.path.join(BASE_DIR, "credentials.json"),
-        scopes=SCOPES,
-        state=state,
-        redirect_uri=get_redirect_uri()
-    )
+    google_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if google_json:
+        import json
+        client_config = json.loads(google_json)
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=SCOPES,
+            state=state,
+            redirect_uri=get_redirect_uri()
+        )
+    else:
+        flow = Flow.from_client_secrets_file(
+            os.path.join(BASE_DIR, "credentials.json"),
+            scopes=SCOPES,
+            state=state,
+            redirect_uri=get_redirect_uri()
+        )
 
     # PATHWAY 1: Try Local Session (Fastest)
     stored_data = session.get(f'state_data_{state}')

@@ -284,7 +284,7 @@ function updateChart(risk) {
 /* Gmail Scan Integration */
 function scanGmail() {
     const btn = document.getElementById('gmailScanBtn');
-    const statTxt = document.getElementById('gmailStatusText');
+    const statTxt = document.getElementById('gmailScanStatus');
     const resDiv = document.getElementById('gmailResults');
 
     btn.disabled = true;
@@ -295,6 +295,7 @@ function scanGmail() {
     .then(async res => {
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
+            if (errorData.status === "API Disabled") return errorData; // Pass through to handle in UI
             throw new Error(errorData.status || "Scanning failed");
         }
         return res.json();

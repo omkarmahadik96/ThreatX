@@ -27,7 +27,8 @@ function showError(message) {
     
     // Provide specific guidance for common Firebase errors
     if (message.includes("auth/unauthorized-domain")) {
-        message = "Domain Unauthorized: Add 'localhost' to your Firebase Console -> Authentication -> Settings -> Authorized domains.";
+        const currentDomain = window.location.hostname;
+        message = `Domain Unauthorized: Add '${currentDomain}' to your Firebase Console -> Authentication -> Settings -> Authorized domains.`;
     }
 
     if(errDiv && errText) {

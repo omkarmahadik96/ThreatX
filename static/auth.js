@@ -24,6 +24,12 @@ const provider = new GoogleAuthProvider();
 function showError(message) {
     const errDiv = document.getElementById("errorMessage");
     const errText = document.getElementById("errorText");
+    
+    // Provide specific guidance for common Firebase errors
+    if (message.includes("auth/unauthorized-domain")) {
+        message = "Domain Unauthorized: Add 'localhost' to your Firebase Console -> Authentication -> Settings -> Authorized domains.";
+    }
+
     if(errDiv && errText) {
         errText.innerText = message;
         errDiv.style.display = "block";

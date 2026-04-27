@@ -83,36 +83,44 @@
 const sessionId = "{{ session_id }}";
 
 async function confirmLogin(){
-
+    const btn = document.querySelector(".btn");
     const status = document.getElementById("status");
 
-    status.innerText = "Processing...";
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    status.innerText = "Synchronizing with desktop...";
 
     try{
         const resp = await fetch("/qr-login-complete",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({session_id: sessionId})
+            body: JSON.stringify({
+                session_id: sessionId,
+                uid: "MOBILE_AGENT_" + Math.random().toString(36).substr(2, 5)
+            })
         });
 
         const data = await resp.json();
 
         if(data.success){
-            status.innerText = "Login approved ✅";
-
-            document.body.style.boxShadow = "0 0 50px #00ffcc inset";
-
+            status.innerHTML = "<b style='color:#00ffcc;'>Access Granted ✅</b><br>Your desktop is now authorized.";
+            document.querySelector(".card").style.border = "1px solid #00ffcc";
+            
             setTimeout(()=>{
-                status.innerText = "You can close this tab";
-            },1500);
+                status.innerText = "You can securely close this tab.";
+            },2500);
         }
         else{
-            status.innerText = "Failed ❌";
+            status.innerText = "Authentication Failed ❌";
+            btn.disabled = false;
+            btn.style.opacity = "1";
         }
 
     }catch(err){
         console.error(err);
-        status.innerText = "Error ❌";
+        status.innerText = "Connection Error ❌";
+        btn.disabled = false;
+        btn.style.opacity = "1";
     }
 }
 </script>

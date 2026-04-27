@@ -296,6 +296,12 @@ def create_qr():
 @app.route("/check-qr/<session_id>")
 def check_qr(session_id):
     session_data = get_qr_session(session_id)
+    if session_data and session_data.get("status") == "success":
+        # 🛡️ FIX: Set the session for the desktop browser once the QR is confirmed
+        session.permanent = True
+        session["user"] = session_data.get("uid", "QR_AUTHENTICATED_AGENT")
+        print(f"✅ [THREATX-AUTH] QR Session Synchronized for: {session['user']}")
+        
     return jsonify(session_data if session_data else {"status": "invalid"})
 
 @app.route("/qr-login-complete", methods=["POST"])

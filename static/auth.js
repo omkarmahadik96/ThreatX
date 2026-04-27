@@ -255,7 +255,9 @@ if(forgotBtn){
 }
 
 // ================= QR PASSKEY LOGIN =================
-document.getElementById("passkeyBtn").addEventListener("click", async ()=>{
+const qrTrigger = document.getElementById("qrLoginBtn");
+if(qrTrigger){
+    qrTrigger.addEventListener("click", async ()=>{
 
     const qrBox = document.getElementById("qrContainer");
     const qrImg = document.getElementById("qrImage");

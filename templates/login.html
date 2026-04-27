@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <div class="login-wrapper" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative;">
+    <div class="login-wrapper" style="width: 100%; min-height: 100dvh; display: flex; align-items: center; justify-content: center; position: relative;">
         <!-- Ambience Orbs -->
         <div class="bg-orb orb-1"></div>
         <div class="bg-orb orb-2"></div>
@@ -48,11 +48,17 @@
                 <!-- Sign In Area -->
                 <div id="signinArea" class="auth-form">
                     <div class="auth-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                        <button id="googleSignInBtn" class="btn btn-google" style="padding: 10px; font-size: 12px;">
+                        <button id="googleSignInBtn" class="btn btn-google" style="padding: 10px; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 5px;">
                             <i class="ph-fill ph-google-logo"></i> Google
                         </button>
-                        <button class="btn btn-outline" onclick="triggerPasskey()" style="padding: 10px; font-size: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                        <button class="btn btn-outline" onclick="triggerPasskey()" style="padding: 10px; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 5px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
                             <i class="ph-fill ph-fingerprint" style="color: var(--primary);"></i> Passkey
+                        </button>
+                    </div>
+
+                    <div id="qrTriggerArea" style="text-align: center; margin-bottom: 15px;">
+                        <button id="qrLoginBtn" class="btn-link" style="font-size: 11px; color: var(--text-secondary); background: none; border: none; cursor: pointer; text-decoration: underline;">
+                            <i class="ph ph-qr-code"></i> Login via Phone Scan
                         </button>
                     </div>
 
@@ -194,6 +200,19 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .tab-btn.active { background: var(--bg-panel) !important; color: #fff !important; }
         .tab-btn:not(.active):hover { color: #fff !important; }
+
+        @media (max-width: 480px) {
+            .login-card { 
+                padding: 20px 20px !important; 
+                margin: 0 15px;
+                border-radius: 15px !important;
+            }
+            .login-header h1 { font-size: 18px !important; }
+            .login-header p { font-size: 11px !important; }
+            .auth-options { grid-template-columns: 1fr !important; }
+            .divider { margin: 10px 0 !important; }
+            .welcome-content h2 { font-size: 24px !important; }
+        }
     </style>
     <footer style="position: absolute; bottom: 20px; width: 100%; text-align: center;">
         <p style="color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">

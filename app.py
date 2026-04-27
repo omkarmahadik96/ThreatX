@@ -161,19 +161,25 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # -----------------------------
 try:
     firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    cred = None
+
     if firebase_json:
-        print("🛡️ [THREATX-CLOUD] Loading Firebase credentials from Environment Variable")
-        import json
-        service_account_info = json.loads(firebase_json)
-        cred = fb_creds.Certificate(service_account_info)
+        print("🛡️ [THREATX-CLOUD] Detected FIREBASE_SERVICE_ACCOUNT_JSON environment variable.")
+        try:
+            import json
+            service_account_info = json.loads(firebase_json)
+            cred = fb_creds.Certificate(service_account_info)
+            print("🛡️ [THREATX-CLOUD] Successfully parsed Service Account JSON from Environment.")
+        except Exception as json_err:
+            print(f"❌ [THREATX-CLOUD] JSON Parse Error: {str(json_err)}")
+            print(f"DEBUG: First 20 chars of variable: {firebase_json[:20]}...")
     else:
         cred_path = os.path.join(BASE_DIR, "serviceAccountKey.json")
         if os.path.exists(cred_path):
             print(f"🛡️ [THREATX-CLOUD] Loading Firebase credentials from local file: {cred_path}")
             cred = fb_creds.Certificate(cred_path)
         else:
-            print("❌ [THREATX-CLOUD] CRITICAL: No Firebase credentials found (ENV or FILE)")
-            cred = None
+            print("❌ [THREATX-CLOUD] CRITICAL: FIREBASE_SERVICE_ACCOUNT_JSON is MISSING and local file not found.")
 
     if cred:
         # Extract project ID automatically from service account

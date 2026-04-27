@@ -6,9 +6,16 @@ import requests
 import tldextract
 import socket
 import os
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-from utils import detect, email_scan_engine
+# os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Disabled for production (Vercel provides HTTPS)
+import hashlib
+import pickle
+import re
 import json
+import uuid
+from flask import Flask, render_template, request, jsonify, session, redirect
+import firebase_admin
+from firebase_admin import credentials, auth, firestore, storage
+from utils import detect, email_scan_engine
 from dotenv import load_dotenv
 
 # Load environment variables

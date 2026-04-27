@@ -210,14 +210,14 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, "static")
 )
 
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback-secret-key-123")
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or os.urandom(24).hex()
 
 app.config.update(
-    SECRET_KEY=os.getenv("FLASK_SECRET_KEY", "fallback-secret-key-123"),
+    SECRET_KEY=app.secret_key,
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=False,
-    SESSION_COOKIE_SAMESITE="Lax",   # 🔥 IMPORTANT
-    PERMANENT_SESSION_LIFETIME=86400 * 30   # 30 days
+    SESSION_COOKIE_SECURE=True,      # 🛡️ ENFORCED FOR PRODUCTION
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=86400 * 30
 )
 
 # -----------------------------
@@ -299,10 +299,8 @@ def mobile_auth(session_id):
 
 @app.route("/passkey-auth", methods=["POST"])
 def passkey_auth():
-    session.permanent = True
-    session["user"] = "SecureHQ_Passkey_Agent"
-    session["user_email"] = "passkey-simulated@aegis.local"
-    return jsonify({"success": True})
+    # 🛡️ SECURITY: Disabled for production to prevent unauthorized access
+    return jsonify({"success": False, "error": "Passkey authentication is currently disabled for security."}), 403
 
 
 @app.route("/scan-emails", methods=["POST"])
@@ -599,6 +597,10 @@ def get_history():
 
 @app.route("/clear_history", methods=["POST"])
 def clear_history():
+    # 🛡️ CSRF Protection: Verify request origin
+    if request.referrer and urlparse(request.referrer).netloc != request.host:
+        return jsonify({"success": False, "error": "Untrusted origin"}), 403
+
     user = session.get("user")
     if not user:
         return jsonify({"success": False, "error": "Unauthorized"}), 401

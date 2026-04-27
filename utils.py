@@ -61,8 +61,27 @@ def check_domain(url):
 # -----------------------------
 # 🔥 WEBSITE REACHABILITY
 # -----------------------------
+from urllib.parse import urlparse
+
 def check_website(url):
     try:
+        # 🛡️ SECURITY: SSRF Protection
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return 0, []
+        
+        # Block common internal/private IP ranges
+        try:
+            ip = socket.gethostbyname(hostname)
+            private_ranges = [
+                "127.", "10.", "172.16.", "192.168.", "169.254."
+            ]
+            if any(ip.startswith(pr) for pr in private_ranges):
+                return 0, ["Security Block: Internal address scanning is restricted"]
+        except:
+            pass
+
         r = requests.get(url, timeout=5, allow_redirects=True)
         if r.status_code == 200:
             return -10, ["Website is live and reachable"]

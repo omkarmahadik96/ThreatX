@@ -335,10 +335,11 @@ def verify_google():
         session.permanent = True
         session["user"] = decoded["uid"]
         session["user_email"] = decoded.get("email", "Google OAuth Agent")
+        print(f"✅ [THREATX-AUTH] Google User Verified: {session['user_email']}")
         return jsonify({"success": True})
-    except:
-        return jsonify({"success": False})
-    
+    except Exception as e:
+        print(f"❌ [THREATX-AUTH] Google Verification Failed: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
 
 @app.route("/verify-email", methods=["POST"])
 def verify_email():
@@ -348,9 +349,11 @@ def verify_email():
         session.permanent = True
         session["user"] = decoded["uid"]
         session["user_email"] = decoded.get("email", "Email Credentials Agent")
+        print(f"✅ [THREATX-AUTH] Email User Verified: {session['user_email']}")
         return jsonify({"success": True})
-    except:
-        return jsonify({"success": False})
+    except Exception as e:
+        print(f"❌ [THREATX-AUTH] Email Verification Failed: {str(e)}")
+        return jsonify({"success": False, "error": str(e)})
     
 @app.route("/gmail-login")
 def gmail_login():

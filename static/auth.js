@@ -20,6 +20,23 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// ================= UI HELPERS =================
+function showError(message) {
+    const errDiv = document.getElementById("errorMessage");
+    const errText = document.getElementById("errorText");
+    if(errDiv && errText) {
+        errText.innerText = message;
+        errDiv.style.display = "block";
+        errDiv.style.animation = "shake 0.4s ease-in-out";
+    }
+    showPopup(message, "error");
+}
+
+function hideError() {
+    const errDiv = document.getElementById("errorMessage");
+    if(errDiv) errDiv.style.display = "none";
+}
+
 // ================= POPUP =================
 function showPopup(message, type="info"){
 
@@ -99,6 +116,7 @@ function isStrongPassword(password){
 
 // ================= GOOGLE LOGIN =================
 document.getElementById("googleSignInBtn").addEventListener("click", async ()=>{
+    hideError();
     try{
         const result = await signInWithPopup(auth, provider);
         const idToken = await result.user.getIdToken();
@@ -113,18 +131,20 @@ document.getElementById("googleSignInBtn").addEventListener("click", async ()=>{
 
         if(data.success){
             if(window.triggerWelcome) window.triggerWelcome(result.user.displayName || "Google User");
-            else setTimeout(()=> window.location.href="/",800);
+            else setTimeout(()=> window.location.href="/", 800);
         }else{
-            showPopup("Google login failed","error");
+            showError(data.error || "Server rejected Google authentication.");
         }
 
     }catch(err){
-        showPopup("Google login error","error");
+        console.error("Google Auth Error:", err);
+        showError(err.message || "Google login failed");
     }
 });
 
 // ================= EMAIL LOGIN =================
 document.getElementById("emailLoginBtn").addEventListener("click", async ()=>{
+    hideError();
 
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -161,11 +181,12 @@ document.getElementById("emailLoginBtn").addEventListener("click", async ()=>{
             if(window.triggerWelcome) window.triggerWelcome(userCredential.user.email);
             else setTimeout(()=> window.location.href="/",800);
         }else{
-            showPopup("Login failed","error");
+            showError("Login failed");
         }
 
     }catch(err){
-        showPopup("Login error","error");
+        console.error("Email Login Error:", err);
+        showError(err.message || "Login error");
     }
 });
 

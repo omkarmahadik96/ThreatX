@@ -37,6 +37,11 @@
                 <button class="tab-btn" id="tabRegister" onclick="switchLoginTab('register')" style="flex: 1; padding: 8px; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 13px;">Create Account</button>
             </div>
 
+            <!-- Error Message Display -->
+            <div id="errorMessage" style="display: none; background: rgba(255, 75, 75, 0.1); border: 1px solid rgba(255, 75, 75, 0.2); color: #ff4b4b; padding: 10px; border-radius: 10px; font-size: 12px; margin-bottom: 15px; text-align: center;">
+                <i class="ph-fill ph-warning-circle"></i> <span id="errorText"></span>
+            </div>
+
             <!-- Auth Form Wrapper for Morphing -->
             <div class="auth-form-wrapper" id="formWrapper">
                 

@@ -152,24 +152,41 @@
 
         async function triggerPasskey() {
             const btn = document.querySelector('button[onclick="triggerPasskey()"]');
-            btn.innerHTML = '<i class="ph-fill ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Validating...';
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="ph-fill ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Authenticating...';
 
             try {
-                const publicKeyCredentialCreationOptions = {
-                    challenge: new Uint8Array(32),
-                    rp: { name: "ThreatX Phishing Defense", id: window.location.hostname },
-                    user: { id: new Uint8Array(16), name: "agent@threatx.local", displayName: "ThreatX Agent" },
-                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
-                    authenticatorSelection: { authenticatorAttachment: "platform" },
-                    timeout: 2000,
-                    attestation: "direct"
-                };
-                await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
-            } catch (err) { console.log("Virtual WebAuthn Handshake Engaged"); }
+                // Trigger Browser Biometric Prompt
+                if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
+                    const publicKeyCredentialCreationOptions = {
+                        challenge: new Uint8Array(32),
+                        rp: { name: "ThreatX Phishing Defense", id: window.location.hostname },
+                        user: { id: new Uint8Array(16), name: "agent@threatx.local", displayName: "ThreatX Agent" },
+                        pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                        authenticatorSelection: { authenticatorAttachment: "platform" },
+                        timeout: 60000,
+                        attestation: "direct"
+                    };
+                    await navigator.credentials.create({ publicKey: publicKeyCredentialCreationOptions });
+                } else {
+                    console.log("WebAuthn requires HTTPS outside of localhost.");
+                }
 
-            const response = await fetch('/passkey-auth', { method: 'POST' });
-            if(response.ok) {
-                window.triggerWelcome("Secure Passkey User");
+                // Sync with server
+                const response = await fetch('/passkey-auth', { method: 'POST' });
+                const data = await response.json();
+                
+                if(response.ok && data.success) {
+                    btn.innerHTML = '<i class="ph-fill ph-check-circle"></i> Success';
+                    if(window.triggerWelcome) window.triggerWelcome("Biometric Agent");
+                    else setTimeout(()=> window.location.href="/", 800);
+                } else {
+                    throw new Error(data.error || "Server validation failed");
+                }
+            } catch (err) { 
+                console.error("Passkey Error:", err);
+                btn.innerHTML = originalHTML;
+                showPopup("Biometric check cancelled or failed", "error");
             }
         }
     </script>

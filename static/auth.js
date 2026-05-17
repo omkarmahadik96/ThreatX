@@ -308,4 +308,5 @@ if(qrTrigger){
         showPopup("QR error","error");
     }
 
-});
+    });
+}
